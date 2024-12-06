@@ -1,27 +1,17 @@
-# TEEKeeper 
+# TEEKeeper Shield
 
 **TEEKeeper** (_Temperature Environment Electronic Keeper_, or _TEEK_ for short) is an open source, Arduino based controller for high temperature electric ovens, such as heat treating ovens for metallurgy/bladesmithing, glass and ceramic kilns, etc.
 In a broader sense, this projects aims to develop a platform that can be upgraded, expanded and extended by anyone, bringing more advanced control features to the users.
 
-The principles behind this uni/passion project are:
+This branch contains the KiCad & Gerber source files for the TEEKeeper Shield circuit. The main components are:
+> [Arduino Mega2560](https://docs.arduino.cc/hardware/mega-2560/)
 
-**1) Open Source and DIY oriented design:**
-     TEEK has been inspired by and made possible by many open source and DIY sources, in the forms of documentation, educational material, tools, software, designs etc.
-     This project embraces these principles and aspires to give something back to these communities.
+> [Adafruit MAX31855K temperature sensor](https://www.adafruit.com/product/269)
 
-**2) Safety and Security:**
-     Both in the design of the code and the circuits, developing methods & functions keeping in mind the potential risks for the user.
+> SD card reader w/ 8 pin interface [(example)](https://europe1.discourse-cdn.com/arduino/original/4X/2/f/4/2f487c179e937e868c1862e275f90aaaed0d1cb2.jpeg)
 
-**3) Accessibility & ease of use:**
-     The system may grow more and more complex, but the user must be presented with a simple, undestrandable and intuitive U/I.
-     The code must be as readable as possible, to allow anyone to approach the codebase to make 
+> 3.5" TFT 480x320px ILI9486/HX8357 Screen Mega Shield [LCDWIKI](http://www.lcdwiki.com/3.5inch_Arduino_Display-Mega2560)
 
-**5) It doesn't stop at the board:**
-     Data logging and analysis tools can help to improve workflows and perform diagnostics checks. Give users data collection methods, statistics and tools.
+> Normally open door switch
 
-**6) Be creative & don't be afraid of complexity!**
-     But still, try to keep it simple - not trivial!
-     
-***DISCLAIMER: high temperature & electric related hazards are very real. 
-Be aware of what you're doing and use this code at your own risk.***
-
+> Rotary encoder with push button [Aliexpress](https://it.aliexpress.com/i/32920789846.html)

@@ -27,5 +27,5 @@ Be aware of what you're doing and use this code at your own risk.***
 
 ## Current Branches
 
-1) (Alpha)[https://github.com/Sigeardo/TEEKeeper/tree/Alpha] : the current alpha code (undergoing testing)
-2) (TEEK_shield)[https://github.com/Sigeardo/TEEKeeper/tree/TEEK_Shield] : files for the TEEK_shield (V1.0)
+1) [Alpha](https://github.com/Sigeardo/TEEKeeper/tree/Alpha) : the current alpha code (undergoing testing)
+2) [TEEK_shield](https://github.com/Sigeardo/TEEKeeper/tree/TEEK_Shield) : files for the TEEK_shield (V1.0)

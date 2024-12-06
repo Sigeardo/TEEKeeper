@@ -5,23 +5,23 @@ In a broader sense, this projects aims to develop a platform that can be upgrade
 
 The principles behind this uni/passion project are:
 
-1) Open Source and DIY oriented design:
+**1) Open Source and DIY oriented design:**
      TEEK has been inspired by and made possible by many open source and DIY sources, in the forms of documentation, educational material, tools, software, designs etc.
      This project embraces these principles and aspires to give something back to these communities.
 
-2) Safety and Security:
+**2) Safety and Security:**
      Both in the design of the code and the circuits, developing methods & functions keeping in mind the potential risks for the user.
 
-3) Accessibility & ease of use:
+**3) Accessibility & ease of use:**
      The system may grow more and more complex, but the user must be presented with a simple, undestrandable and intuitive U/I.
      The code must be as readable as possible, to allow anyone to approach the codebase to make 
 
-5) It doesn't stop at the board:
+**5) It doesn't stop at the board:**
      Data logging and analysis tools can help to improve workflows and perform diagnostics checks. Give users data collection methods, statistics and tools.
 
-6) Be creative & don't be afraid of complexity!
+**6) Be creative & don't be afraid of complexity!**
+     But still, try to keep it simple - not trivial!
      
-
-DISCLAIMER: high temperature & electric related hazards are very real. 
-Be aware of what you're doing and use this code at your own risk.
+***DISCLAIMER: high temperature & electric related hazards are very real. 
+Be aware of what you're doing and use this code at your own risk.***
 

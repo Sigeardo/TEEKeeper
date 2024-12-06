@@ -1,6 +1,6 @@
+# TEEKeeper 
 
 <p align="center">
-  # == TEEKeeper ==
   <img width="300" height="300" src="https://github.com/user-attachments/assets/caabfb89-b64e-4e22-97bd-50c342700cd9">
 </p>
 

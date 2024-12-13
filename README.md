@@ -20,7 +20,7 @@ The principles behind this uni/passion project are:
      The system may grow more and more complex, but the user must be presented with a simple, undestrandable and intuitive U/I.
      The code must be as readable as possible, to allow anyone to approach the codebase to make 
 
-**5) It doesn't stop at the board:**
+**4) It doesn't stop at the board:**
      Data logging and analysis tools can help to improve workflows and perform diagnostics checks. Give users data collection methods, statistics and tools.
 
 **6) Be creative & don't be afraid of complexity!**

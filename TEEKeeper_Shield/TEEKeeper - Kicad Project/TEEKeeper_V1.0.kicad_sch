@@ -8221,7 +8221,7 @@
 		)
 		(uuid "e2c58e97-0c1a-46de-ac2e-b93b64800d8b")
 		(property "Sheetname" "System_Shield"
-			(at 87.376 167.386 0)
+			(at 87.376 167.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)

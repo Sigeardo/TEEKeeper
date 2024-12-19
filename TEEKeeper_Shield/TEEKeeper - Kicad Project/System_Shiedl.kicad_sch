@@ -2499,12 +2499,6 @@
 		(uuid "38cf68d2-9f7a-4176-9b46-b721e1336649")
 	)
 	(junction
-		(at 191.77 147.32)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "4c8191ed-4487-4f4e-b055-6204cfe38cf6")
-	)
-	(junction
 		(at 129.54 162.56)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2515,12 +2509,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "5be0bb17-ee9d-4516-8b2d-2f419dc16f3f")
-	)
-	(junction
-		(at 189.23 147.32)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "74b18578-bc35-460d-a445-857940c33208")
 	)
 	(junction
 		(at 209.55 147.32)
@@ -2598,6 +2586,16 @@
 	)
 	(wire
 		(pts
+			(xy 191.77 152.4) (xy 193.04 152.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0d9d66fe-6f07-497a-8097-ff2fe68bb737")
+	)
+	(wire
+		(pts
 			(xy 71.12 66.04) (xy 100.33 66.04)
 		)
 		(stroke
@@ -2605,16 +2603,6 @@
 			(type default)
 		)
 		(uuid "0fb6530f-b81a-4d73-a466-ff3145305e15")
-	)
-	(wire
-		(pts
-			(xy 236.22 156.21) (xy 189.23 156.21)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0ffb6da1-8bfd-4ac9-96a2-ba9340d92a07")
 	)
 	(wire
 		(pts
@@ -2798,6 +2786,16 @@
 	)
 	(wire
 		(pts
+			(xy 71.12 24.13) (xy 83.82 24.13)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6f18f8b4-3aa0-45b0-bd21-b067ec6e885c")
+	)
+	(wire
+		(pts
 			(xy 137.16 162.56) (xy 129.54 162.56)
 		)
 		(stroke
@@ -2845,6 +2843,16 @@
 			(type default)
 		)
 		(uuid "7add7817-21a5-4ffe-80d3-dcfa32720be0")
+	)
+	(wire
+		(pts
+			(xy 189.23 156.21) (xy 190.5 156.21)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7b1d1952-7642-47bb-a3be-55407fa461e0")
 	)
 	(wire
 		(pts
@@ -2918,16 +2926,6 @@
 	)
 	(wire
 		(pts
-			(xy 191.77 147.32) (xy 189.23 147.32)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "88ac1f25-192a-4341-8a85-997d96f6d2d6")
-	)
-	(wire
-		(pts
 			(xy 80.01 39.37) (xy 80.01 157.48)
 		)
 		(stroke
@@ -2955,16 +2953,6 @@
 			(type default)
 		)
 		(uuid "8c97d1a1-7437-41f7-9d38-a51d94b64462")
-	)
-	(wire
-		(pts
-			(xy 236.22 24.13) (xy 236.22 156.21)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8dfd76fa-e10f-4448-ae45-650f0c65ebe0")
 	)
 	(wire
 		(pts
@@ -3098,16 +3086,6 @@
 	)
 	(wire
 		(pts
-			(xy 194.31 147.32) (xy 191.77 147.32)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ce4fc702-a5a6-4c7c-bac6-16abe923ebc4")
-	)
-	(wire
-		(pts
 			(xy 207.01 153.67) (xy 207.01 147.32)
 		)
 		(stroke
@@ -3125,6 +3103,16 @@
 			(type default)
 		)
 		(uuid "d8f07b00-8050-4010-9e76-1d4c5db2af2e")
+	)
+	(wire
+		(pts
+			(xy 191.77 147.32) (xy 191.77 152.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "dfb97bbd-8401-4f6c-a94c-65b7a89fc690")
 	)
 	(wire
 		(pts
@@ -3168,16 +3156,6 @@
 	)
 	(wire
 		(pts
-			(xy 71.12 24.13) (xy 236.22 24.13)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f9f38573-8ec5-403e-9285-89301ecf4e48")
-	)
-	(wire
-		(pts
 			(xy 71.12 63.5) (xy 102.87 63.5)
 		)
 		(stroke
@@ -3215,6 +3193,72 @@
 			)
 		)
 		(uuid "b92c7b4b-45f3-4b11-bed9-9fdd83dee39f")
+	)
+	(global_label "5V"
+		(shape input)
+		(at 193.04 152.4 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "956faffa-10bc-44be-841d-457f558b8e10")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 198.3233 152.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "5V"
+		(shape input)
+		(at 83.82 24.13 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "e5a7ab39-2222-49ce-ba87-aa7931b4d2da")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 89.1033 24.13 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "5V"
+		(shape input)
+		(at 190.5 156.21 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "e706acdc-e55f-40ab-a352-9b05a55ce061")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 195.7833 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:R")

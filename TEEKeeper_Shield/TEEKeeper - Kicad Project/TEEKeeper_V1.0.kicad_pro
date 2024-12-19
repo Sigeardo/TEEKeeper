@@ -483,7 +483,8 @@
     },
     "net_colors": null,
     "netclass_assignments": {
-      "/System_Shield/Digital_PCB/5V": "5V"
+      "/System_Shield/Digital_PCB/5V": "5V",
+      "5V": "5V"
     },
     "netclass_patterns": []
   },
@@ -495,7 +496,7 @@
       "plot": "Export/",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "",
+      "step": "TEEKeeper_V1.0.step",
       "svg": "C:/Users/samue/Desktop/Export/",
       "vrml": ""
     },
@@ -633,7 +634,7 @@
   "sheets": [
     [
       "ab2c7eff-250b-4e79-be23-50cd0e4d8e2f",
-      "Principale"
+      "Root"
     ],
     [
       "e2c58e97-0c1a-46de-ac2e-b93b64800d8b",

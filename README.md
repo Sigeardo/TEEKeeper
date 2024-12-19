@@ -6,7 +6,7 @@
 In a broader sense, this projects aims to develop a platform that can be upgraded, expanded and extended by anyone, bringing more advanced control features to the users.
 
 # Project principles
-This university & passion project has been developed  behind this uni/passion project are:
+This university & passion project has been developed with 5 principles in mind:
 
 **1) Open Source and DIY oriented design:**
      TEEK has been inspired by and made possible by many open source and DIY sources, in the forms of documentation, educational material, tools, software, designs etc.

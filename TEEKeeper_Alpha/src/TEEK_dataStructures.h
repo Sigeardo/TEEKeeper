@@ -210,8 +210,8 @@ class ProgramManager {
         unsigned long SoakTimeEnd() const { return soakTimeEnd; }
         bool IsSoaking() const { return isSoaking; }
         bool IsTargetReached() const { return targetReached; }
-        Instruction GetInstruction(unsigned int index) const;
-        Instruction CurrentInstruction() const;
+        Instruction GetInstruction(unsigned int index);
+        Instruction CurrentInstruction();
         bool IsSelected() const { return isSelected; } // True if a program has been selected and loaded
 
         // == 8. Setters ===============================================================================

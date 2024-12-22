@@ -3,73 +3,42 @@
 
 // ==== TEMPERATURE PROBE CLASS =====
 double TemperatureProbe::readTemp(){
-
-  short int readingErrors = 0;
+  unsigned int errCount = 0;
   double temp = 0;
 
-  do {
-    
-    // ============= FAHRENHEIT BLOCK =============
-    if(unit == FAHRENHEIT){
-      temp = sensor.readFahrenheit();
-      // check for faulty readings
-      if(isnan(temp)){
-        readingErrors++;
+  // poll the temperature until you read something that isn't a NaN
+  do{
+    temp = sensor.readCelsius();  // probe
+
+    // if it is a NaN, increment the error counter
+    if(isnan(temp)){
+      errCount++;
+      Serial.print(errCount); Serial.println(" error reading temperature. Retrying...");
+
+      // if the error counter is too high, return a NaN
+      if(errCount > MAX_N_ERROR_READINGS){
+        Serial.println("Error reading temperature. Shutting off...");
+        return NAN;
       }
-      else{
-        // check if the temperature is within fault limits
-        if(temp > toFarhenheit(ERROR_TEMP) || temp < toFarhenheit(MIN_TEMPERATURE)){
-          sprintf(errorStreamChar, "Temperature reading out of security bounds. Shutting off...");
-          return NAN;
-        }
-        else if (temp > toFarhenheit(MAX_TEMPERATURE)){
-          sprintf(errorStreamChar, "Temperature is too high. Shutting off...");
-          return NAN;
-        }
-        else {
-          return temp;
-        }
-      }
+      delay(10); // delay to avoid reading too fast
     }
-    // ============= CELSIUS & KELVIN BLOCK =============
-    else {
-      temp = sensor.readCelsius();
+  } while(isnan(temp));
 
-      // check for faulty readings   
-      if(isnan(temp)){
-        readingErrors++;
-      }
-      else{
-        // check if the temperature is within fault limits
-        if(temp > ERROR_TEMP || temp < MIN_TEMPERATURE){
-          sprintf(errorStreamChar, "Temperature reading out of security bounds. Shutting off...");
-          return NAN;
-        }
-        else if (temp > MAX_TEMPERATURE){
-          sprintf(errorStreamChar, "Temperature is too high. Shutting off...");
-          return NAN;
-        }
-        else {
-          if(unit == CELSIUS){
-            return temp;      // Celsius
-          }
-          else { 
-            return temp + 273.15;   // Kelvin
-          }
-        }
-      }
-    }
-    // ============================================
-    
-    // avoid too many calls too fast
-    delay(10);
+  // temperature is read correctly
+  // check boundaries
+  if(temp > ERROR_TEMP){
+    Serial.println("Temperature is too high. Shutting off to prevent damage...");
+    return NAN;
+  }
+  else if(temp < MIN_TEMPERATURE){
+    Serial.println("Temperature is too low. Possible broken probe. Shutting off...");
+    return NAN;
+  }
 
-  } while(readingErrors < MAX_N_ERROR_READINGS);
-
-  // if the reading errors are too many, return a negative value
-  sprintf(errorStreamChar, "ERROR: too many reading errors. Shutting off...");
-  return NAN;
-
+  // temperture is within boundaries
+  if(unit == FAHRENHEIT) return toFarhenheit(temp);
+  else if(unit == KELVIN) return temp + 273.15;
+  else return temp;
 };
 
 
@@ -163,7 +132,7 @@ void CoreSystem::allowFiring(){
 
 };
 
-char* CoreSystem::getTextUnit(){
+char* CoreSystem::getTextUnit() const{
   switch(unit){
     case CELSIUS:       return (char*)"Celsius";
     case FAHRENHEIT:    return (char*)"Fahrenheit";
@@ -469,7 +438,7 @@ bool ProgramManager::isInstructionDone(){
 // --------------------------------------------------------------------------------------------
 
 // Get an instruction from the program
-const Instruction ProgramManager::GetInstruction(unsigned int index) {
+Instruction ProgramManager::GetInstruction(unsigned int index) {
   if (index > numOfInstructions) {
     //errorStream = "ERROR: instruction index out of bounds.\n";
     sprintf(errorStreamChar,"Instruction index out of bounds.\n");
@@ -482,7 +451,7 @@ const Instruction ProgramManager::GetInstruction(unsigned int index) {
 // --------------------------------------------------------------------------------------------
 
 // Get the current instruction
-const Instruction ProgramManager::CurrentInstruction() {
+Instruction ProgramManager::CurrentInstruction() {
   return instructions[instructionIndex];
 };
 

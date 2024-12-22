@@ -28,9 +28,9 @@
 #define PIN_DOOR_INTERRUPT 19
 
 // == Encoder PINS
-#define PIN_ENCODER_S1  4
+#define PIN_ENCODER_S1  2
 #define PIN_ENCODER_S2  3
-#define PIN_ENCODER_KEY 2
+#define PIN_ENCODER_KEY 4
 
 // Heater control pin
 #define PIN_HEATER 5

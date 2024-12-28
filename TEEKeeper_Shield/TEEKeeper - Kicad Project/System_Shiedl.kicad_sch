@@ -3184,6 +3184,17 @@
 		)
 		(uuid "ff68ede5-10f8-4cff-927a-4e1ec294e8da")
 	)
+	(text "R10, R11 are zero-value resistors. \nAdd appropriate resistors if you \nexperience noise issues on the SPI lines."
+		(exclude_from_sim no)
+		(at 241.046 100.584 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "9acffb70-6e2a-4cff-9cbf-45c68003bb3d")
+	)
 	(text "TFT Screen sits over the 18x2 Arduino Mega interface"
 		(exclude_from_sim no)
 		(at 172.974 77.47 0)
@@ -3279,7 +3290,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10"
+		(property "Value" "0"
 			(at 207.01 64.7699 0)
 			(effects
 				(font

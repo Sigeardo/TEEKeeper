@@ -2818,6 +2818,17 @@
 		)
 		(uuid "36388a60-6a9e-48f3-b692-4ecd69b85041")
 	)
+	(text "R9, R12 are zero-value resistors. \nAdd appropriate resistors if you \nexperience noise issueson the SPI lines."
+		(exclude_from_sim no)
+		(at 209.55 122.174 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "8ab99a2b-aa9f-4aec-8cb0-ac4e72127826")
+	)
 	(text "1. GND \n2. 3.3V\n3. 5V\n4. CS\n5. MOSI\n6. SCK\n7. MISO\n8. GND\n\n"
 		(exclude_from_sim no)
 		(at 179.832 68.326 0)
@@ -3014,7 +3025,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10"
+		(property "Value" "0"
 			(at 191.77 91.4399 0)
 			(effects
 				(font
@@ -3629,7 +3640,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10"
+		(property "Value" "0"
 			(at 156.21 91.4399 0)
 			(effects
 				(font

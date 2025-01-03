@@ -493,7 +493,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "./",
+      "plot": "Gerber/",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "TEEKeeper_V1.0.step",

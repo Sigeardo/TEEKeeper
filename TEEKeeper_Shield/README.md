@@ -1,7 +1,7 @@
 # TEEKeeper Shield
 
 <p align="center">
-  <img width="400" height="auto" src="https://github.com/user-attachments/assets/a365b7ae-caf0-412b-9d83-156e1541d1e4">
+  <img width="400" height="auto" src="https://github.com/user-attachments/assets/684e240e-8374-46ce-85c6-f54f65acb861">
 </p>
 
 **TEEKeeper** (_Temperature Environment Electronic Keeper_, or _TEEK_ for short) is an open source, Arduino based controller for high temperature electric ovens, such as heat treating ovens for metallurgy/bladesmithing, glass and ceramic kilns, etc.

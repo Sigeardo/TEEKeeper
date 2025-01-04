@@ -19,10 +19,10 @@
 //#define PIN_SPI_SS 10
 
 // == MAX31855 Select pin
-#define PIN_PROBE_CS 7
+#define PIN_PROBE_CS 17
 
 // == SD Card PINS
-#define PIN_SD_CS 6
+#define PIN_SD_CS 18
 
 // == Door interrupt pin
 #define PIN_DOOR_INTERRUPT 19

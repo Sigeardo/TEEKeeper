@@ -21,7 +21,7 @@ File *__file = nullptr; // Log file pointer
 bool TEEK_Setup(){
 
     __screen.begin();           // Initialize the TFT screen
-    __screen.setRotation(3);    // Set the screen orientation
+    __screen.setRotation(1);    // Set the screen orientation
 
     // Initialize encod45rer
     Timer1.initialize(1000);                // Timer for smooth encoder input
@@ -38,7 +38,7 @@ bool TEEK_Setup(){
     pinMode(PIN_SD_CS, OUTPUT);     // SD PIN - Chip Select
     pinMode(PIN_HEATER, OUTPUT);    // Heater - ON/OFF
     digitalWrite(PIN_HEATER, LOW);  // normally off
-    
+
     pinMode(PIN_DOOR_INTERRUPT, INPUT);  // Door interrupt pin
     attachInterrupt(digitalPinToInterrupt(PIN_DOOR_INTERRUPT), doorInterrupt, CHANGE);
     

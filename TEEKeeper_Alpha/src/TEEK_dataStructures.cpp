@@ -1,15 +1,25 @@
 #include "TEEK_dataStructures.h"
-
+#include <Arduino.h>
 
 // ==== TEMPERATURE PROBE CLASS =====
+
+// Uncomment to provide a virtual temperature reading for debugging purpouses
+//#define DEBUGGING_PROBE
+
+#ifndef DEBUGGING_PROBE
 double TemperatureProbe::readTemp(){
   unsigned int errCount = 0;
   double temp = 0;
 
+
   // poll the temperature until you read something that isn't a NaN
   do{
-    temp = sensor.readCelsius();  // probe
+    Serial.println("Temperature reading...");
 
+    cli(); // turn off interrupts to avoid conflicts with the SPI bus
+    temp = sensor.readCelsius();  // probe
+    sei();  // turn on interrupts
+    
     // if it is a NaN, increment the error counter
     if(isnan(temp)){
       errCount++;
@@ -36,10 +46,24 @@ double TemperatureProbe::readTemp(){
   }
 
   // temperture is within boundaries
+  Serial.println("Temp reading complete.");
   if(unit == FAHRENHEIT) return toFarhenheit(temp);
   else if(unit == KELVIN) return temp + 273.15;
   else return temp;
 };
+#else 
+double TemperatureProbe::readTemp(){
+
+  // Simulate a temperature reading and give back a number
+  Serial.println("Reading temperature...");
+  digitalWrite(PIN_PROBE_CS, HIGH);
+  delay(1000);
+  Serial.println("Temperature reading complete.");
+  digitalWrite(PIN_PROBE_CS, LOW);
+
+  return 20;
+}
+#endif
 
 
 // ==== CORESYSTEM CLASS =====

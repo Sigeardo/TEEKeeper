@@ -240,8 +240,8 @@ class ProgramManager {
         void ConfirmButtonPressed() { buttonPressed = true; }
 
         // == 11. Execution Control =====================================================================
-        unsigned long elapsedTime() const { return millis() - progStartTime; }
-        unsigned long remainingSoakTime() const { return soakTimeStart + CurrentInstruction().soakTime - millis(); }
+        unsigned long elapsedTime() { return millis() - progStartTime; }
+        unsigned long remainingSoakTime() { return soakTimeStart + CurrentInstruction().soakTime - millis(); }
         void rampCompleted() { instructions[instructionIndex].tempVariationRate = 0; } // if the ramp has been completed, erase the ramp rate
         
         void startSoakTimer();              // Start the soak timer

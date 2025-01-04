@@ -43,9 +43,9 @@ Main Menu
 // TEEK PALETTE
 #define TEEK_BLACK  (uint16_t) 0x0000 // #000000
 #define TEEK_BLUE   (uint16_t) 0x1107 // #14213D
-#define TEEK_YELLOW (uint16_t) 0xfd02 // #FCA311
-#define TEEK_SILVER (uint16_t) 0xe73c // #E5E5E5
-#define TEEK_WHITE  (uint16_t) 0xffff // #FFFFFF
+#define TEEK_YELLOW (uint16_t) 0xFD02 // #FCA311
+#define TEEK_SILVER (uint16_t) 0xE73C // #E5E5E5
+#define TEEK_WHITE  (uint16_t) 0xFFFF // #FFFFFF
 
 // Auxiliar colors
 #define RED   (uint16_t) 0xF800

@@ -18,6 +18,27 @@ extern ScreenManager __GUI;            // Screen manager
 char errorStreamChar[ERROR_BUFF_SIZE]; // Error message buffer
 char messageStream[ERROR_BUFF_SIZE];   // Message buffer
 
+
+
+//! ==============
+
+volatile int freeMem = 0; // Variable to store free memory (volatile since updated in ISR)
+
+// Function to calculate free memory for AVR
+int freeMemory() {
+  extern int __heap_start, *__brkval;
+  int v;
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+}
+
+// ISR for Timer3
+ISR(TIMER3_COMPA_vect) {
+  freeMem = freeMemory(); // Update free memory in the ISR
+}
+
+
+//! ==============
+
 void setup(){
     TEEK_Setup(); // Setup & initialize the system
 
@@ -30,10 +51,11 @@ void setup(){
 };
 
 void loop(){
+
     __core.update(__program);                           // PWM cycle manager
     manageSystemState(__core, __program, __probe);      // Program execution manager
     __GUI.updateGraphics(__core, __screen, __encoder);  // Update the GUI
-    
+    delay(1);
 };  
 
 

@@ -482,10 +482,7 @@
       "version": 3
     },
     "net_colors": null,
-    "netclass_assignments": {
-      "/System_Shield/Digital_PCB/5V": "5V",
-      "5V": "5V"
-    },
+    "netclass_assignments": null,
     "netclass_patterns": []
   },
   "pcbnew": {

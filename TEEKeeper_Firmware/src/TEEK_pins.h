@@ -18,7 +18,8 @@
     #define PIN_SPI_SS 53
 #endif
 
-#ifdef
+// for debugging purpouses only
+#ifdef SYSTEM_ARDUINO_UNO
 // Arduino UNO SPI interface
 #define PIN_SPI_MISO 12
 #define PIN_SPI_MOSI 11

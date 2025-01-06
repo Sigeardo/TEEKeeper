@@ -2,11 +2,9 @@
 #include <Arduino.h>
 
 // ==== TEMPERATURE PROBE CLASS =====
+TemperatureProbe::TemperatureProbe() : sensor(PIN_SPI_SCK, PIN_PROBE_CS, PIN_SPI_MISO) {unit = CELSIUS;};
+TemperatureProbe::TemperatureProbe(TemperatureUnit u) : sensor(PIN_SPI_CLK, PIN_PROBE_CS, PIN_SPI_MISO) {unit = u;};
 
-// Uncomment to provide a virtual temperature reading for debugging purpouses
-//#define DEBUGGING_PROBE
-
-#ifndef DEBUGGING_PROBE
 double TemperatureProbe::readTemp(){
   unsigned int errCount = 0;
   double temp = 0;
@@ -51,19 +49,7 @@ double TemperatureProbe::readTemp(){
   else if(unit == KELVIN) return temp + 273.15;
   else return temp;
 };
-#else 
-double TemperatureProbe::readTemp(){
 
-  // Simulate a temperature reading and give back a number
-  Serial.println("Reading temperature...");
-  digitalWrite(PIN_PROBE_CS, HIGH);
-  delay(1000);
-  Serial.println("Temperature reading complete.");
-  digitalWrite(PIN_PROBE_CS, LOW);
-
-  return 20;
-}
-#endif
 
 
 // ==== CORESYSTEM CLASS =====

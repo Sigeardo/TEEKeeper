@@ -4,19 +4,28 @@
 
 // ===== System PINS ==================================================
 
+
+// Board
+#define SYSTEM_ARDUINO_MEGA 
+//#define SYSTEN_ARDUINO_UNO
+
 // === SPI interface
-// Arduino MEGA 2560 SPI interface
-//#define PIN_SPI_MISO 50
-//#define PIN_SPI_MOSI 51
-//#define PIN_SPI_SCK 52
-//#define PIN_SPI_SS 53
+#ifdef SYSTEM_ARDUINO_MEGA
+    // Arduino MEGA 2560 SPI interface
+    #define PIN_SPI_MISO 50
+    #define PIN_SPI_MOSI 51
+    #define PIN_SPI_CLK 52
+    #define PIN_SPI_SS 53
+#endif
 
-
+#ifdef
 // Arduino UNO SPI interface
-//#define PIN_SPI_MISO 12
-//#define PIN_SPI_MOSI 11
-//#define PIN_SPI_SCK 13
-//#define PIN_SPI_SS 10
+#define PIN_SPI_MISO 12
+#define PIN_SPI_MOSI 11
+#define PIN_SPI_CLK 13
+#define PIN_SPI_SS 10
+#endif
+
 
 // == MAX31855 Select pin
 #define PIN_PROBE_CS 17

@@ -83,10 +83,8 @@ class TemperatureProbe {
 
     public: 
         // Constructor
-        TemperatureProbe() : sensor(PIN_PROBE_CS) {unit = CELSIUS;};
-        TemperatureProbe(int _pin) : sensor(_pin) {unit = CELSIUS;};
-        TemperatureProbe(TemperatureUnit _unit) : sensor(PIN_PROBE_CS) {unit = _unit;};
-        TemperatureProbe(int _pin, TemperatureUnit _unit) : sensor(_pin) {unit = _unit;};
+        TemperatureProbe();
+        TemperatureProbe(TemperatureUnit u);
 
         // Setters and Getters
         void setUnit(TemperatureUnit unit){unit = unit;};

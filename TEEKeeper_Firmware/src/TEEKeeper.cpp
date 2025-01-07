@@ -98,8 +98,7 @@ void CoreSystem::update(ProgramManager& __prog) {
 
     // Poll the temperature probe at a fixed interval
     if(millis() - lastTempReading> POLL_PROBE_INTERVAL){
-        currentTemperature = probe.readTemp();
-        lastTempReading = millis();
+        ReadTemperature();
     }
 
     //! the polling does not interfere with the temperature control loop
@@ -127,15 +126,9 @@ void CoreSystem::update(ProgramManager& __prog) {
             // if the time has come to start the next cycle
             if(millis()>nextPWMCycle){
                 // read the temperature
-                currentTemperature = probe.readTemp();
+                ReadTemperature();
 
-                // check for errors
-                if(isnan(currentTemperature)){
-                    denyFiring();
-                    updateStatus(ERROR);
-                    return;
-                }
-
+                // Compute the PID values
                 double error = targetTemperature - currentTemperature;
                 dutyCycle = PID(error);
 
@@ -189,7 +182,7 @@ void CoreSystem::update(ProgramManager& __prog) {
             digitalWrite(PIN_HEATER, HIGH);
         } else {
             unsigned long currentTime = millis();
-            currentTemperature = probe.readTemp();
+            ReadTemperature();
 
             // Monitor temperature and toggle heater
             if (__autPar.heaterState && currentTemperature >= TARGET_TEMP_FOR_AUTOTUNE) {

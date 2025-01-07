@@ -1,6 +1,12 @@
 #include "TEEK_dataStructures.h"
 #include <Arduino.h>
 
+// This is only to prevent the IDE from complaining
+#ifndef TEEK_GRAPHICS_H
+#include <TEEK_graphics.h>
+#include <TEEKeeper.h>
+#endif
+
 // ==== TEMPERATURE PROBE CLASS =====
 TemperatureProbe::TemperatureProbe() : sensor(PIN_SPI_SCK, PIN_PROBE_CS, PIN_SPI_MISO) {unit = CELSIUS;};
 TemperatureProbe::TemperatureProbe(TemperatureUnit u) : sensor(PIN_SPI_CLK, PIN_PROBE_CS, PIN_SPI_MISO) {unit = u;};
@@ -28,7 +34,7 @@ double TemperatureProbe::readTemp(){
         Serial.println("Error reading temperature. Shutting off...");
         return NAN;
       }
-      delay(10); // delay to avoid reading too fast
+      delay(5); // delay to avoid reading too fast
     }
   } while(isnan(temp));
 
@@ -199,6 +205,49 @@ void CoreSystem::setTarget(double target, bool newInstruction){
   else{
     targetTemperature = target;
   }
+}
+
+void CoreSystem::ReadTemperature(){
+  double temp = probe.readTemp();
+
+  // check if the temperature is a NaN
+  if(!isnan(temp)){
+    currentTemperature = temp;
+    lastTempReading = millis();
+    return;
+  }
+
+  // if the temperature is a NaN, a critical error occurred
+  CriticalError();
+}
+
+void CoreSystem::CriticalError(){
+
+  // set the status to ERROR
+  status = ERROR;
+
+  // turn off the heater
+  digitalWrite(PIN_HEATER, LOW);
+  allowFiringHeater = false;
+
+  // if we are running a program, log the critical error
+  extern ProgramManager __program;
+  if(__program.IsSelected() && keepLog){
+    extern File *__file;  // log file
+    updateLog(*__file, errorStreamChar, __program.elapsedTime()); 
+    closeLog(*__file, __program);
+  };
+
+  // display error screen
+  extern ScreenManager __GUI;
+  extern CriticalErrorScreen __criticalErrorScreen;
+  __GUI.setScreen(&__criticalErrorScreen);
+
+  // get stuck here to force user reset
+  while(true){
+    delay(1000);
+  }
+
 }
 
 // ===================================================================================

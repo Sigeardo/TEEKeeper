@@ -289,6 +289,8 @@ class ProgramManager {
  * - bool keepLog: Flag to indicate if logging is enabled.
  * - unsigned long lastDoorOpenTime: The timestamp of the last door opening event.
  * - bool isTuning: Flag to indicate if the system is in PID tuning mode.
+ * - double PID(const double error): Calculate the PID control signal.
+ * - void CriticalError(): Handle critical errors.
  * 
  * @public
  * - CoreSystem(TemperatureProbe &probe): Constructor with temperature probe.
@@ -371,7 +373,8 @@ class CoreSystem {
         bool isTuning = false;
 
         // == 10. Private Methods ====================================================================
-        double PID(const double error);
+        double PID(const double error);     // Calculate the PID control signal
+        void CriticalError();               // Handle critical errors
 
     public:
         // == 1. Constructors ========================================================================
@@ -417,7 +420,7 @@ class CoreSystem {
         void stopFiring() { fireHeater = false; }                       // Stop the heater
 
         // == 5. Temperature Reading and Stability ===================================================
-        void ReadTemperature() { currentTemperature = probe.readTemp(); } // Read the temperature
+        void ReadTemperature(); // Read the temperature
         void recordDoorOpening() { lastDoorOpenTime = millis(); }         // Record the last door opening time
 
         // == 6. System State Management =============================================================

@@ -59,6 +59,8 @@ void drawSoftError(TFT_HX8357& tft, char* message);
 void drawCriticalError(TFT_HX8357& tft);
 void drawCriticalError(TFT_HX8357& tft, char* message);
 
+short DrawLongMessage(TFT_HX8357& tft, int heigh, int padding, char* message);
+
 // Inline metods for temperature limits conversion
 inline double MAX_TEMP(int unit) {
     switch(unit){
@@ -87,6 +89,11 @@ inline double MIN_TEMP(int unit) {
     }
 }
 #define MIN_TEMPERATURE_IN MIN_TEMP(__core.Unit())
+
+
+// the screen can display only 38 characters in a line, with 10px padding
+  #define MAX_CHAR_PER_LINE 38
+  #define LAT_PADDING 10
 
 
 

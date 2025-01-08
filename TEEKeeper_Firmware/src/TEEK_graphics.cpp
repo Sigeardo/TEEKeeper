@@ -52,7 +52,7 @@ void drawBaseScreen(TFT_HX8357& tft){
   // bottom bar
   tft.fillRect(0, 300, 180, 320, TEEK_BLUE);
   tft.fillRect(180, 300, 480, 320, TEEK_YELLOW);
-};
+}
 
 // ===================================================================================================
 
@@ -164,6 +164,8 @@ void drawSoftError(TFT_HX8357& tft, char* message){
 // endanger the system or the user.
 // It fills the screen with the RED colour, reports the error
 // message error and asks the user to reset the system.
+#define CRITICAL_ERROR_START_HEIGHT 150
+#define CRITICAL_ERROR_PADDING 10
 void drawCriticalError(TFT_HX8357& tft){
 
   // fill the screen with the RED color
@@ -173,15 +175,81 @@ void drawCriticalError(TFT_HX8357& tft){
   tft.setTextSize(4);
   tft.setCursor(5, 100);
   tft.setTextColor(TEEK_BLACK);
-  
   tft.drawCentreString((char *)"!!CRITICAL ERROR!!", 240, 100, 1);
 
-  // The error message is written in smaller letters, centered
-  tft.setTextSize(2);
-  tft.setCursor(10, 150);
-  tft.print(errorStreamChar);
-  tft.setCursor(10, 200);
+  // Write the error message, if there is any
+  short h = DrawLongMessage(tft, CRITICAL_ERROR_START_HEIGHT, CRITICAL_ERROR_PADDING, errorStreamChar);
+
+  // write the final message
+  h += 50; // add some padding
+  tft.setCursor(10, h);
   tft.print("System reset required.");
+};
+
+
+// --------------------------------------------------------------------------------
+
+// DrawLongMessage is a helper function that draws a long message on the screen
+// without exceeding the screen width. It takes the TFT screen, the height where
+// the message should start and the padding from the left edge.
+// It returns the final vertical cursor position of the message.
+short DrawLongMessage(TFT_HX8357& tft, int heigh, int padding, char* message){
+  
+  int h = heigh;
+
+  tft.setTextSize(2);
+  tft.setCursor(padding, heigh);
+  int len = strlen(message);
+
+  if (len != 0){
+
+    int charCount = 0;
+    int lastWordStart = 0;
+    int i = 0;
+    int lineStartIndex = 0;
+
+    if (len > MAX_CHAR_PER_LINE) {
+      char buff[MAX_CHAR_PER_LINE];
+      
+      // find the last complete word before the MAX_CHAR_PER_LINE
+      // print the line and move to the next one
+      // repeat until the end of the message
+      while (i < len) {
+        
+          // if we find a space, update the last word start
+          if (message[i] == ' ') {
+            lastWordStart = i;
+          }
+
+          // if we reach the max char per line, print the line
+          if (charCount == MAX_CHAR_PER_LINE) {
+            strncpy(buff, message + lineStartIndex, lastWordStart - lineStartIndex);
+            buff[lastWordStart - lineStartIndex] = '\0';
+            tft.setCursor(padding, h);
+            tft.print(buff);
+            h += 20; // move to the next line
+            lineStartIndex = lastWordStart + 1;
+            charCount = 0;
+          }
+          // if we reach the end of the message, print the last line
+          else if (i == len - 1) {
+            strncpy(buff, message + lineStartIndex, i - lineStartIndex);
+            buff[i - lineStartIndex] = '\0';
+            tft.setCursor(padding, h);
+            tft.print(buff);
+            break;
+          }
+          else {
+          charCount++;
+          i++;
+        }
+      }
+    }
+  } else {
+    // if the error is shorter, just print it
+    tft.drawCentreString(message, 240, h, 1);
+  }
+  return h;
 };
 
 void drawCriticalError(TFT_HX8357& tft, char* message){
@@ -547,11 +615,7 @@ void CriticalErrorScreen::render(TFT_HX8357& tft) {
   __core.denyFiring();
   digitalWrite(PIN_HEATER, LOW);
 
-  if(errorStreamChar[0] != '\0') {
-    drawCriticalError(tft, errorStreamChar);
-  } else {
-    drawCriticalError(tft);
-  }
+  drawCriticalError(tft);
 }
 
 void CriticalErrorScreen::update(ClickEncoder& encoder, TFT_HX8357& tft) {

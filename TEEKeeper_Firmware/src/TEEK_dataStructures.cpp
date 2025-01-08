@@ -14,6 +14,7 @@ TemperatureProbe::TemperatureProbe(TemperatureUnit u) : sensor(PIN_SPI_CLK, PIN_
 double TemperatureProbe::readTemp(){
   unsigned int errCount = 0;
   double temp = 0;
+  extern char errorStreamChar[ERROR_BUFF_SIZE];
 
 
   // poll the temperature until you read something that isn't a NaN
@@ -31,7 +32,8 @@ double TemperatureProbe::readTemp(){
 
       // if the error counter is too high, return a NaN
       if(errCount > MAX_N_ERROR_READINGS){
-        Serial.println("Error reading temperature. Shutting off...");
+        sprintf(errorStreamChar, "Can't measure the temperature, check the wiring. Shutting off...");
+        Serial.println(errorStreamChar);
         return NAN;
       }
       delay(5); // delay to avoid reading too fast
@@ -41,11 +43,13 @@ double TemperatureProbe::readTemp(){
   // temperature is read correctly
   // check boundaries
   if(temp > ERROR_TEMP){
-    Serial.println("Temperature is too high. Shutting off to prevent damage...");
+    sprintf(errorStreamChar,"Temperature is too high. Shutting off to prevent damage...");
+    Serial.println(errorStreamChar);
     return NAN;
   }
   else if(temp < MIN_TEMPERATURE){
-    Serial.println("Temperature is too low. Possible broken probe. Shutting off...");
+    sprintf(errorStreamChar,"Temperature is too low. Possible damage to the probe. Shutting off...");
+    Serial.println(errorStreamChar);
     return NAN;
   }
 

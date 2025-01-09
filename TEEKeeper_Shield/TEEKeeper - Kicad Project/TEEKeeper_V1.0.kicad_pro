@@ -490,7 +490,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "Gerber/",
+      "plot": "../TEEKeeper - Gerber files/",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "TEEKeeper_V1.0.step",

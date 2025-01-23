@@ -25,7 +25,12 @@ void setup(){
         Serial.begin(9600); // Initialize the serial communication
     #endif 
 
+
+
     drawBaseScreen(__screen); // Draw the base screen
+
+    __core.ReadTemperature(); // Read the temperature
+
     __GUI.renderCurrent(__screen); // Render the main menu screen
 };
 

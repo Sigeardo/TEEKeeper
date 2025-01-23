@@ -11,6 +11,12 @@
 TemperatureProbe::TemperatureProbe() : sensor(PIN_SPI_SCK, PIN_PROBE_CS, PIN_SPI_MISO) {unit = CELSIUS;};
 TemperatureProbe::TemperatureProbe(TemperatureUnit u) : sensor(PIN_SPI_CLK, PIN_PROBE_CS, PIN_SPI_MISO) {unit = u;};
 
+
+
+// Uncomment to disable the probe (USED FOR DEBUGGING ONLY!)
+//#define PROBE_DEBUG
+
+#ifndef PROBE_DEBUG
 double TemperatureProbe::readTemp(){
   unsigned int errCount = 0;
   double temp = 0;
@@ -59,6 +65,12 @@ double TemperatureProbe::readTemp(){
   else if(unit == KELVIN) return temp + 273.15;
   else return temp;
 };
+#else 
+double TemperatureProbe::readTemp(){
+  return 20.0+0.01*random(-100,100);
+};
+
+#endif
 
 
 

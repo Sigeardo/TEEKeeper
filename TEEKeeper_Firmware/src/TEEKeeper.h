@@ -8,6 +8,11 @@
 #include <SdFat.h>              // SD card
 #include <ClickEncoder.h>       // Rotary encoder + push button
 #include <EEPROM.h>             // Arduino EEPROM i/o
+
+#define ILI9486                 // Select the screen type for the TFT library
+#ifdef HX8357B
+    #undef HX8357B              // Remove the HX8357B definition
+#endif
 #include <TFT_HX8357.h>         // TFT screen
 #include <TimerOne.h>           // Timer for encoder
 

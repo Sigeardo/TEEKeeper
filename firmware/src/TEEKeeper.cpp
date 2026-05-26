@@ -58,6 +58,14 @@ bool TEEK_Setup(){
         __core = CoreSystem(__probe);
     }
 
+    // Restore temperature unit. Validated by range — fresh EEPROM (0xFF) fails the check
+    // so the default (CELSIUS) is used without needing a separate magic byte.
+    uint8_t savedUnit;
+    EEPROM.get(EEPROM_DEFAULT_UNIT, savedUnit);
+    if (savedUnit <= (uint8_t)KELVIN) {
+        __core.setUnit((TemperatureUnit)savedUnit);
+    }
+
     return true;
 };
 
@@ -196,7 +204,8 @@ void CoreSystem::update(ProgramManager& __prog) {
                     __autPar.highTemp = currentTemperature;
                 }
             } else if (!__autPar.heaterState && currentTemperature <= (TARGET_TEMP_FOR_AUTOTUNE - 0.5)) {
-                // Heater on
+                // Heater on — capture previous toggle time BEFORE overwriting it
+                unsigned long prevToggleTime = __autPar.lastToggleTime;
                 __autPar.heaterState = true;
                 digitalWrite(PIN_HEATER, HIGH);
                 __autPar.lastToggleTime = currentTime;
@@ -206,8 +215,8 @@ void CoreSystem::update(ProgramManager& __prog) {
                     __autPar.lowTemp = currentTemperature;
                 }
 
-                // Calculate oscillation period
-                double period = (currentTime - __autPar.lastToggleTime) * 2; // Full cycle
+                // Full oscillation period = 2 × half-period (heater-off interval)
+                double period = (double)(currentTime - prevToggleTime) * 2.0;
                 if (__autPar.oscillationCount == 0) {
                     __autPar.Tu = period;
                 } else {
@@ -218,11 +227,23 @@ void CoreSystem::update(ProgramManager& __prog) {
                 // Update oscillation count
                 __autPar.oscillationCount++;
 
-                // Update ultimate gain
-                __autPar.Ku = (4.0 * PWMPeriod) / ((__autPar.highTemp - __autPar.lowTemp) * 0.5);
+                // Standard relay-feedback: Ku = 4d / (π·a)
+                // d = AUTOTUNE_RELAY_AMPLITUDE (relay half-swing in duty-cycle units, see TEEK_constants.h)
+                // a = oscillation half-amplitude
+                double a = (__autPar.highTemp - __autPar.lowTemp) / 2.0;
+                if (a > 0.0) {
+                    __autPar.Ku = (4.0 * AUTOTUNE_RELAY_AMPLITUDE) / (PI * a);
+                }
 
                 // Finalize tuning if sufficient oscillations achieved
                 if (__autPar.oscillationCount >= PID_N_OSCILLATIONS) {
+                    // Guard: abort if Ku or Tu degenerate (zero amplitude or period)
+                    if (__autPar.Ku <= 0.0 || __autPar.Tu <= 0.0) {
+                        denyFiring();
+                        updateStatus(ERROR);
+                        sprintf(errorStreamChar, "Autotune failed: zero Ku or Tu.");
+                        return;
+                    }
                     kp = 0.6 * __autPar.Ku;
                     ki = (1.2 * __autPar.Ku) / __autPar.Tu;
                     kd = (3.0 * __autPar.Ku * __autPar.Tu) / 40.0;

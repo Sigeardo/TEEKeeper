@@ -1,5 +1,6 @@
 #include "TEEK_graphics.h"
 #include <SdFat.h>
+#include <EEPROM.h>
 ScreenManager       __GUI;                // GUI handler 
 
 // static allocation of the screens
@@ -450,15 +451,21 @@ void SettingsMenuScreen::handleSelection() {
     case 2: // "> Unit: [C/F/K]"
       currentUnit = (currentUnit + 1) % 3; // Cycle through the temperature units
       __core.setUnit((TemperatureUnit)currentUnit); // Update the unit in the core system
+      EEPROM.put(EEPROM_DEFAULT_UNIT, (uint8_t)currentUnit); // persist unit across reboots
       __core.setTarget(MIN_TEMPERATURE); // Erase the target temperature
       render(__screen); // Refresh the screen
       break;
 
     case 3: // "> PID Autotune"
-      // Autotune is temporarily disabled: the Tu calculation is broken
-      // (lastToggleTime is overwritten before the period is computed → Tu = 0).
-      drawSoftError(__screen, (char*)"Autotune not available yet.");
-      render(__screen);
+      __core.allowFiring();  // safety check: temperature bounds, door state
+      if (!__core.isFiringAllowed()) {
+        drawSoftError(__screen, (char*)"Cannot autotune: temperature out of safe range.");
+        render(__screen);
+        break;
+      }
+      __core.startFiring();  // arm the PWM loop so update() can reach autotune code
+      __core.PIDAutotune();  // switch mode to PID_AUTOTUNE
+      __GUI.setScreen(&__executionScreen);
       break;
     case 4: // "> Keep log: [Y/N]"
       __core.setKeepLog(!__core.KeepLog()); // Toggle the keep log flag

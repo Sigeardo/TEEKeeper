@@ -44,8 +44,8 @@ struct AutotuneParameters {
     unsigned long startTime = 0;  // Time when tuning started
     unsigned long lastToggleTime = 0; // Last time the heater toggled
     bool heaterState = false;     // Tracks heater on/off state during tuning
-    double highTemp = 0;          // Maximum observed temperature
-    double lowTemp = 0;           // Minimum observed temperature
+    double highTemp = 0;                            // Maximum observed temperature
+    double lowTemp = TARGET_TEMP_FOR_AUTOTUNE;      // Minimum observed temperature — sentinel high so first reading is always captured
     int oscillationCount = 0;     // Number of completed oscillations
 };
 

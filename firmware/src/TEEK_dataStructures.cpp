@@ -1,5 +1,6 @@
 #include "TEEK_dataStructures.h"
 #include <Arduino.h>
+#include <avr/wdt.h>
 
 // This is only to prevent the IDE from complaining
 #ifndef TEEK_GRAPHICS_H
@@ -25,21 +26,27 @@ double TemperatureProbe::readTemp(){
 
   // poll the temperature until you read something that isn't a NaN
   do{
+#ifdef SERIAL_COMMS
     Serial.println("Temperature reading...");
+#endif
 
-    cli(); // turn off interrupts to avoid conflicts with the SPI bus
+    cli(); // turn off interrupts — keep window tight around the SPI read
     temp = sensor.readCelsius();  // probe
-    sei();  // turn on interrupts
-    
+    sei();  // re-enable interrupts (encoder ISR can run again)
+
     // if it is a NaN, increment the error counter
     if(isnan(temp)){
       errCount++;
+#ifdef SERIAL_COMMS
       Serial.print(errCount); Serial.println(" error reading temperature. Retrying...");
+#endif
 
       // if the error counter is too high, return a NaN
       if(errCount > MAX_N_ERROR_READINGS){
         sprintf(errorStreamChar, "Can't measure the temperature, check the wiring. Shutting off...");
+#ifdef SERIAL_COMMS
         Serial.println(errorStreamChar);
+#endif
         return NAN;
       }
       delay(5); // delay to avoid reading too fast
@@ -50,17 +57,23 @@ double TemperatureProbe::readTemp(){
   // check boundaries
   if(temp > ERROR_TEMP){
     sprintf(errorStreamChar,"Temperature is too high. Shutting off to prevent damage...");
+#ifdef SERIAL_COMMS
     Serial.println(errorStreamChar);
+#endif
     return NAN;
   }
   else if(temp < MIN_TEMPERATURE){
     sprintf(errorStreamChar,"Temperature is too low. Possible damage to the probe. Shutting off...");
+#ifdef SERIAL_COMMS
     Serial.println(errorStreamChar);
+#endif
     return NAN;
   }
 
-  // temperture is within boundaries
+  // temperature is within boundaries
+#ifdef SERIAL_COMMS
   Serial.println("Temp reading complete.");
+#endif
   if(unit == FAHRENHEIT) return toFarhenheit(temp);
   else if(unit == KELVIN) return temp + 273.15;
   else return temp;
@@ -128,16 +141,24 @@ CoreSystem::CoreSystem(TemperatureProbe& _probe, double _kp, double _ki, double 
 
 
 double CoreSystem::PID(const double error){
-  integral += error;
-  double derivative = error - last_error;
-  dutyCycle = kp * error + ki * integral + kd * derivative;
+  // dt in seconds — use nominal PWM period so gains are frequency-independent
+  const double dt = PWMPeriod / 1000.0;
 
-  if(dutyCycle > 95){
-    dutyCycle = 100;
+  integral += error * dt;                      // accumulate in [°C·s]
+  double derivative = (error - last_error) / dt; // rate in [°C/s]
+  double output = kp * error + ki * integral + kd * derivative;
+
+  // Back-calculate anti-windup: when output saturates, pull integral back to
+  // exactly the value that produces the saturation limit.
+  if (output > 100.0) {
+    output = 100.0;
+    if (ki != 0.0) integral = (100.0 - kp * error - kd * derivative) / ki;
+  } else if (output < 0.0) {
+    output = 0.0;
+    if (ki != 0.0) integral = (0.0 - kp * error - kd * derivative) / ki;
   }
-  else if(dutyCycle < 5){
-    dutyCycle = 0;
-  }
+
+  dutyCycle = output;
   return dutyCycle;
 }
 
@@ -185,7 +206,7 @@ void CoreSystem::PIDAutotune(){
   __autPar.lastToggleTime = 0;
   __autPar.heaterState = false;
   __autPar.highTemp = 0;
-  __autPar.lowTemp = 0;
+  __autPar.lowTemp = TARGET_TEMP_FOR_AUTOTUNE;  // sentinel — updated downward from setpoint
   __autPar.oscillationCount = 0;
 
   extern ProgramManager __program;
@@ -217,6 +238,8 @@ void CoreSystem::setTarget(double target, bool newInstruction){
     targetTemperature = target;
     isStable = false;
     stabilityCounter = 0;
+    integral = 0;     // prevent integral carryover into a new setpoint
+    last_error = 0;
   }
   else{
     targetTemperature = target;
@@ -239,18 +262,17 @@ void CoreSystem::ReadTemperature(){
 
 void CoreSystem::CriticalError(){
 
-  // set the status to ERROR
-  status = ERROR;
-
-  // turn off the heater
+  // Safety-first: cut the heater before anything else so a crash in the
+  // display or logging code cannot leave the element energized.
   digitalWrite(PIN_HEATER, LOW);
   allowFiringHeater = false;
+  status = ERROR;
 
   // if we are running a program, log the critical error
   extern ProgramManager __program;
   if(__program.IsSelected() && keepLog){
     extern File *__file;  // log file
-    updateLog(*__file, errorStreamChar, __program.elapsedTime()); 
+    updateLog(*__file, errorStreamChar, __program.elapsedTime());
     closeLog(*__file, __program);
   };
 
@@ -259,9 +281,15 @@ void CoreSystem::CriticalError(){
   extern CriticalErrorScreen __criticalErrorScreen;
   __GUI.setScreen(&__criticalErrorScreen);
 
-  // get stuck here to force user reset
+  // Arm the watchdog with an 8 s timeout. If the MCU hangs without the user
+  // power-cycling, the watchdog resets it — TEEK_Setup() will drive the heater
+  // LOW again, preventing an indefinite silent halt with undefined outputs.
+  wdt_enable(WDTO_8S);
+
+  // Halt the firmware. Heater is off (above). User must power-cycle;
+  // watchdog will force a reset after 8 s if they don't.
   while(true){
-    delay(1000);
+    delay(1000); // not fed — watchdog fires after ~8 s
   }
 
 }
@@ -468,7 +496,7 @@ bool ProgramManager::addInstruction(char* name, unsigned long soakTime, double t
 
 // Move to the next instruction
 bool ProgramManager::nextInstruction(){
-  if(instructionIndex < numOfInstructions) {
+  if(instructionIndex + 1 < numOfInstructions) {  // only advance when next index is valid
     instructionIndex++;
     // reset control fields
     instrStartTime = millis();
@@ -529,6 +557,7 @@ Instruction ProgramManager::GetInstruction(unsigned int index) {
 
 // Get the current instruction
 Instruction ProgramManager::CurrentInstruction() {
+  if (instructionIndex >= numOfInstructions) return Instruction(); // safe default at program end
   return instructions[instructionIndex];
 };
 

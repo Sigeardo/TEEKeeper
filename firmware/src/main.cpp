@@ -1,6 +1,6 @@
 
 #include "TEEKeeper.h"
-#include <arduino.h>
+#include <Arduino.h>
 
 // == I/O 
 ClickEncoder __encoder(PIN_ENCODER_S1, PIN_ENCODER_S2, PIN_ENCODER_KEY, ENCODER_STEPS); // Rotary encoder

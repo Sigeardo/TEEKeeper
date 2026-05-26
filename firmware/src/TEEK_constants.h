@@ -36,9 +36,12 @@
 // TODO like a spreadsheet idk 
 // TODO or a simple python script
 // TODO no matlab simulink or other fancy stuff
+// Gains are now time-scaled: ki in [%/(°C·s)], kd in [%·s/°C].
+// Values chosen to match the pre-dt-fix response at PWMPeriod=5 s
+// (ki_old=0.5 / 5 s = 0.1; kd_old=0.2 * 5 s = 1.0). Run autotune for a tuned system.
 #define PWM_DEFAULT_KP 0.4
-#define PWM_DEFAULT_KI 0.5
-#define PWM_DEFAULT_KD 0.2
+#define PWM_DEFAULT_KI 0.1
+#define PWM_DEFAULT_KD 1.0
 
 // Encoder steps per click
 #define ENCODER_STEPS 4
@@ -55,11 +58,15 @@
 #define EEPROM_MAGIC_ADDR 32
 #define EEPROM_MAGIC_VAL  0xAB
 
-// Autotune parameters 
+// Autotune parameters
 #define TARGET_TEMP_FOR_AUTOTUNE 800  // Target setpoint
 #define MIN_TEMP_ERROR 1              // Min deviation to count as stable
 #define AUTOTUNE_TIMEOUT (unsigned long) 120*SECOND*60   // 2h timeout for tuning
 #define PID_N_OSCILLATIONS 10         // Number of oscillations required for tuning
+// Relay amplitude used in Ku = 4d/(π·a).  The relay switches heater fully
+// on (100 % duty) / fully off (0 %), so the half-swing from centre is 50.
+// *** FLAG: if PID() output is later rescaled to 0–1, change this to 0.5. ***
+#define AUTOTUNE_RELAY_AMPLITUDE 50.0
 
 
 // ===== GRAPHICS ========

@@ -16,7 +16,17 @@ CriticalErrorScreen __criticalErrorScreen;  // Critical error screen
 
 
 
-//* 0. Functions % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+// Keep the control loop running for `ms` milliseconds so the heater duty
+// cycle is still managed while a soft-error message is on screen.
+static void softErrorWait(unsigned long ms) {
+    unsigned long start = millis();
+    while (millis() - start < ms) {
+        __core.update(__program);
+        delay(1);
+    }
+}
+
+//* 0. Functions % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 // drawBaseScreen is used to fill the screen with the basic UI. 
 /*
 The screen is divided into 4 parts:
@@ -54,62 +64,6 @@ void drawBaseScreen(TFT_HX8357& tft){
   tft.fillRect(180, 300, 480, 320, TEEK_YELLOW);
 }
 
-// ===================================================================================================
-
-// Updates the base screen with the main menu UI.
-// Refer to the INIT_INTF.png image
-// The main menu is divided into 4 parts:
-//
-// Temperature reading: TEMP: xxxx.xx [Unit]
-// Current target: xxxx.xx   Status: [ON/OFF]
-// 3 selectable options:
-//  > Select from SD
-//  > Settings 
-//  > Stop
-// 
-// Draw the main menu UI
-void drawMainMenu(TFT_HX8357& tft) {
-    tft.setTextColor(TEEK_BLACK);
-
-    // fill the screen with the SILVER color
-    tft.fillRect(0, 40, 480, 260, TEEK_SILVER);
-    
-    // The temperature reading is written in big letters, centered 
-    tft.setTextSize(3);
-    tft.setCursor(30, 50);
-    tft.print("TEMP:");
-    tft.setTextSize(5);
-    tft.setCursor(145, 50);
-    tft.print(__core.CurrentTemperature(), 2);
-    tft.setTextSize(3);
-    switch(__core.Unit()) {
-      case 0: tft.print(" [C]"); break;
-      case 1: tft.print(" [F]"); break;
-      case 2: tft.print(" [K]"); break;
-    }
-
-    // Write target and status
-    tft.setTextSize(2);
-    tft.setCursor(30, 100);
-    tft.print("Target:");
-    if(__core.TargetTemperature() == 0) tft.print("--");
-    else tft.print(__core.TargetTemperature(), 2);
-
-    tft.setCursor(240, 100);
-    tft.print("Status: ");
-    if(__core.isFiring()) {
-      tft.setTextColor(GREEN);
-      tft.print("ON");
-    }
-    else {
-      tft.setTextColor(RED);
-      tft.print("OFF");
-    }
-
-    
-
-}
-
 // --------------------------------------------------------------------------------
 
 // drawSoftError draws the UI for a non critical error 
@@ -135,7 +89,7 @@ void drawSoftError(TFT_HX8357& tft){
   // clean the error message buffer
   sprintf(errorStreamChar, " ");
 
-  delay(3000); 
+  softErrorWait(3000);
 };
 
 void drawSoftError(TFT_HX8357& tft, char* message){
@@ -472,12 +426,6 @@ void SettingsMenuScreen::render(TFT_HX8357& tft) {
       tft.print(__core.getTextUnit());
       break;
     case 3: // "> PID Autotune"
-      if(confirmPIDautotune) {
-        tft.setCursor(320, 100 + i * 50);
-        tft.setTextColor(TEEK_SILVER, RED);
-        tft.print("Confirm?");
-        tft.setTextColor(TEEK_BLACK, TEEK_SILVER);
-      }
       break;
     case 4: // "> Keep log: [Y/N]"
       if(__core.KeepLog()) tft.print("Yes");
@@ -507,15 +455,10 @@ void SettingsMenuScreen::handleSelection() {
       break;
 
     case 3: // "> PID Autotune"
-      
-      if(confirmPIDautotune) {
-        __core.PIDAutotune(); // Start the PID autotune process
-        __GUI.setScreen(&__executionScreen); // move to the execution screen
-        
-        } else {
-        confirmPIDautotune = true; // Set the flag to confirm PID autotune
-        render(__screen); // Refresh the screen
-      }
+      // Autotune is temporarily disabled: the Tu calculation is broken
+      // (lastToggleTime is overwritten before the period is computed → Tu = 0).
+      drawSoftError(__screen, (char*)"Autotune not available yet.");
+      render(__screen);
       break;
     case 4: // "> Keep log: [Y/N]"
       __core.setKeepLog(!__core.KeepLog()); // Toggle the keep log flag
@@ -527,10 +470,6 @@ void SettingsMenuScreen::handleSelection() {
       break;
   }
 
-  // Reset the PID autotune confirmation flag
-  if(menuIndex != 3 && confirmPIDautotune) {
-    confirmPIDautotune = false;
-  }
 };
 
 void SettingsMenuScreen::update(ClickEncoder& encoder, TFT_HX8357& tft) {
@@ -539,7 +478,6 @@ void SettingsMenuScreen::update(ClickEncoder& encoder, TFT_HX8357& tft) {
     menuIndex = (menuIndex + encoderValue + menuCount) % menuCount; // Wrap-around menu navigation
     // update the highlighted menu item
     tft.setTextSize(3);
-    tft.setCursor(30, 150);
     for (int i = 0; i < menuCount; i++) {
       tft.setCursor(30, 100 + i * 35); // Adjust position for each item
       if (i == menuIndex) {
@@ -611,7 +549,6 @@ void TargetUpdateScreen::update(ClickEncoder& encoder, TFT_HX8357& tft) {
 
 //* 4. CriticalErrorScreen Implementation ===================================================
 void CriticalErrorScreen::render(TFT_HX8357& tft) {
-  extern CoreSystem __core;
   __core.denyFiring();
   digitalWrite(PIN_HEATER, LOW);
 
@@ -892,6 +829,7 @@ void ExecutionScreen::render(TFT_HX8357& tft) {
         char buff[9];
         tft.setTextColor(TEEK_BLUE, TEEK_YELLOW);
         timeStampConverter(__program.remainingSoakTime(), buff, 3);
+        tft.print(buff);
         tft.setTextColor(TEEK_BLUE, bgColour);  //reset the regular text color
       }
       else {
@@ -913,8 +851,6 @@ void ExecutionScreen::render(TFT_HX8357& tft) {
     tft.setCursor(30, 240);
     tft.print("Instr #"); tft.print(__program.InstructionIndex()+1); 
     tft.print(" of "); tft.print(__program.NumOfInstructions());
-    char buff[13];
-    snprintf(buff, 13, "%s...", __program.CurrentInstruction().name);
     tft.print(" - "); tft.print(__program.CurrentInstruction().name);
     tft.setCursor(30, 270);
     tft.setTextColor(TEEK_BLUE, bgColour);
@@ -1028,6 +964,7 @@ void ExecutionScreen::update(ClickEncoder& encoder, TFT_HX8357& tft) {
             tft.print(" - "); tft.print(instrName);
             lastInstructionIndex = __program.InstructionIndex();
           }
+          break;
 
         case PID_AUTOTUNE: // ---------------------------------------------------------
           tft.setTextColor(TEEK_BLACK, bgColour);
@@ -1098,7 +1035,7 @@ void ExecutionScreen::update(ClickEncoder& encoder, TFT_HX8357& tft) {
       }
 
       // update timer timestamp
-      lastTimerUpdate = 0;
+      lastTimerUpdate = millis();
     }
 
   // Handle inputs
@@ -1226,7 +1163,6 @@ void TuneScreen::update(ClickEncoder& encoder, TFT_HX8357& tft) {
     menuIndex = (menuIndex + encoderValue + menuCount) % menuCount; // Wrap-around menu navigation
     // update the highlighted menu item
     tft.setTextSize(3);
-    tft.setCursor(30, 150);
     for (int i = 0; i < menuCount; i++) {
       tft.setCursor(30, 100 + i * 35); // Adjust position for each item
       if (i == menuIndex) {

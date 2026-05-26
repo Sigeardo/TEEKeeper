@@ -18,6 +18,10 @@ extern ScreenManager __GUI;            // Screen manager
 char errorStreamChar[ERROR_BUFF_SIZE]; // Error message buffer
 char messageStream[ERROR_BUFF_SIZE];   // Message buffer
 
+// Door ISR flags — written only from doorInterrupt(), read+cleared in main loop
+volatile bool doorOpenFlag  = false;
+volatile bool doorCloseFlag = false;
+
 void setup(){
     TEEK_Setup(); // Setup & initialize the system
 

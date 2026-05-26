@@ -31,6 +31,9 @@ extern char errorStreamChar[ERROR_BUFF_SIZE];
 extern char messageStream[ERROR_BUFF_SIZE];
 
 
+extern volatile bool doorOpenFlag;   // Set by door ISR, cleared in main loop
+extern volatile bool doorCloseFlag;  // Set by door ISR, cleared in main loop
+
 extern ProgramManager   __program;  // Program manager
 extern TemperatureProbe __probe;    // Temperature probe
 extern CoreSystem       __core;     // Core management (PID, PWM, etc.)

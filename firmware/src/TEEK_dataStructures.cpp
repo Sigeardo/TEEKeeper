@@ -8,7 +8,7 @@
 #endif
 
 // ==== TEMPERATURE PROBE CLASS =====
-TemperatureProbe::TemperatureProbe() : sensor(PIN_SPI_SCK, PIN_PROBE_CS, PIN_SPI_MISO) {unit = CELSIUS;};
+TemperatureProbe::TemperatureProbe() : sensor(PIN_SPI_CLK, PIN_PROBE_CS, PIN_SPI_MISO) {unit = CELSIUS;};
 TemperatureProbe::TemperatureProbe(TemperatureUnit u) : sensor(PIN_SPI_CLK, PIN_PROBE_CS, PIN_SPI_MISO) {unit = u;};
 
 
@@ -368,11 +368,12 @@ bool ProgramManager::readLine(File& file, char* buffer, size_t bufferSize) {
     size_t i = 0;
     while (file.available() && i < bufferSize - 1) {
         char c = file.read();
-        if (c == '\n') break; // End of line
+        if (c == '\n') break;
+        if (c == '\r') continue; // strip Windows CR so CRLF files parse correctly
         buffer[i++] = c;
     }
-    buffer[i] = '\0'; // Null-terminate the line
-    return (i > 0);   // Return true if any data was read
+    buffer[i] = '\0';
+    return (i > 0);
 }
 
 // Parse a line and extract the instruction fields
@@ -418,11 +419,12 @@ bool ProgramManager::parseCSVLine(
     *rampRate = atof(tempBuffer);
 
     // Parse the waitForDoorOpen flag
-    *waitForDoorOpen = (*ptr == '1');
-    ptr += 2; // Move past the flag and comma
+    ptr = extractField(ptr, tempBuffer, sizeof(tempBuffer));
+    *waitForDoorOpen = (tempBuffer[0] == '1');
 
     // Parse the waitForButtonPress flag
-    *waitForButtonPress = (*ptr == '1');
+    ptr = extractField(ptr, tempBuffer, sizeof(tempBuffer));
+    *waitForButtonPress = (tempBuffer[0] == '1');
 
     return true; // Parsing successful
 }
@@ -484,7 +486,7 @@ bool ProgramManager::nextInstruction(){
 
 // Remove an instruction from the program
 bool ProgramManager::removeInstruction(unsigned int index){
-  if (index > numOfInstructions) {
+  if (index >= numOfInstructions) {
     //errorStream = "ERROR: instruction index out of bounds.\n";
     sprintf(errorStreamChar,"Instruction index out of bounds.\n");
     return false;
@@ -514,7 +516,7 @@ bool ProgramManager::isInstructionDone(){
 
 // Get an instruction from the program
 Instruction ProgramManager::GetInstruction(unsigned int index) {
-  if (index > numOfInstructions) {
+  if (index >= numOfInstructions) {
     //errorStream = "ERROR: instruction index out of bounds.\n";
     sprintf(errorStreamChar,"Instruction index out of bounds.\n");
     return Instruction();

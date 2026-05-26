@@ -42,18 +42,19 @@ bool TEEK_Setup(){
     pinMode(PIN_DOOR_INTERRUPT, INPUT);  // Door interrupt pin
     attachInterrupt(digitalPinToInterrupt(PIN_DOOR_INTERRUPT), doorInterrupt, CHANGE);
     
-    // == 2. Load previous configurations from the EEPROM, if there are any
-    double kp = EEPROM.get(sizeof(double) * EEPROM_ADDR_KP, kp);
-    if (kp != 0) {
-        // Load PID values from EEPROM
-        double ki = EEPROM.get(sizeof(double) * EEPROM_ADDR_KI, ki);
-        double kd = EEPROM.get(sizeof(double) * EEPROM_ADDR_KD, kd);
-
-        // Update the CORE with the loaded PID values
+    // == 2. Load previous configurations from the EEPROM, if there are any.
+    // A magic byte at EEPROM_MAGIC_ADDR guards against reading garbage on a
+    // fresh AVR (default flash value 0xFF would otherwise be parsed as PID).
+    uint8_t magic;
+    EEPROM.get(EEPROM_MAGIC_ADDR, magic);
+    if (magic == EEPROM_MAGIC_VAL) {
+        double kp, ki, kd;
+        EEPROM.get(EEPROM_ADDR_KP, kp);
+        EEPROM.get(EEPROM_ADDR_KI, ki);
+        EEPROM.get(EEPROM_ADDR_KD, kd);
         __core = CoreSystem(__probe, kp, ki, kd);
-    }  
+    }
     else {
-        // Initialize the core system with the default values
         __core = CoreSystem(__probe);
     }
 
@@ -117,14 +118,13 @@ void CoreSystem::update(ProgramManager& __prog) {
         if(fireHeater == true){
             unsigned long time = millis();
 
-            // if duty cycle has ended
-            if(millis() > dutyEnd){
-                // turn off the heater
+            // if duty cycle has ended (rollover-safe: cast to signed)
+            if((long)(millis() - dutyEnd) >= 0){
                 digitalWrite(PIN_HEATER, LOW);
             }
 
-            // if the time has come to start the next cycle
-            if(millis()>nextPWMCycle){
+            // if the time has come to start the next cycle (rollover-safe)
+            if((long)(millis() - nextPWMCycle) >= 0){
                 // read the temperature
                 ReadTemperature();
 
@@ -231,6 +231,8 @@ void CoreSystem::update(ProgramManager& __prog) {
                     EEPROM.put(EEPROM_ADDR_KP, kp);
                     EEPROM.put(EEPROM_ADDR_KI, ki);
                     EEPROM.put(EEPROM_ADDR_KD, kd);
+                    uint8_t magic = EEPROM_MAGIC_VAL;
+                    EEPROM.put(EEPROM_MAGIC_ADDR, magic);
 
                     // if there is an SD card, create  a new file and save the autotune parameters
                     if(__core.KeepLog()) {
@@ -287,7 +289,31 @@ void CoreSystem::update(ProgramManager& __prog) {
  * - ERROR: Manage errors and stop the system.
  */
 bool manageSystemState(CoreSystem& sys, ProgramManager& prog, TemperatureProbe& sens) {
-    
+
+  // --- Poll door ISR flags (set by doorInterrupt, handled here in main-loop context) ---
+  if (doorOpenFlag) {
+    doorOpenFlag = false;
+    sys.denyFiring();
+    if (prog.IsSelected()) sys.updateStatus(DOOR_OPEN);
+  }
+
+  if (doorCloseFlag) {
+    doorCloseFlag = false;
+    if (prog.IsSelected()) {
+      sys.updateStatus(EXECUTING); // set EXECUTING before allowFiring so the status check passes
+      sys.allowFiring();
+      if (prog.CurrentInstruction().waitForDoorOpen) {
+        prog.setInstrStartTemp(sys.CurrentTemperature());
+        prog.nextInstruction();
+      } else {
+        sys.updateStatus(RECOVER);
+      }
+    } else {
+      sys.updateStatus(IDLE);
+    }
+  }
+  // -----------------------------------------------------------------------------------
+
   // check for the status of the system
   switch(sys.Status()){
 
@@ -304,18 +330,21 @@ bool manageSystemState(CoreSystem& sys, ProgramManager& prog, TemperatureProbe& 
         break;
 
     // BEGIN: program has been selected, initialize and start the execution
-    case BEGIN:                     
-        // load the first instruction from the file 
+    case BEGIN:
+        // load the first instruction
         sys.setTarget(prog.CurrentInstruction().target, true);
 
-        // create & initialize log file
+        // anchor timers and ramp baseline for the first instruction
         prog.setProgStartTime(millis());
+        prog.setInstrStartTime(millis());
+        prog.setInstrStartTemp(sys.CurrentTemperature());
 
         // begin execution
-        sys.updateStatus(EXECUTING); // update program status
+        sys.updateStatus(EXECUTING);
 
         // Security check
-        sys.allowFiring();           // enable heating 
+        sys.allowFiring();           // enable heating
+        sys.startFiring();           // arm the PWM loop
 
         if(sys.KeepLog()) {          // if logging is enabled
             __file = createLog();    // create the log file
@@ -384,6 +413,7 @@ bool manageSystemState(CoreSystem& sys, ProgramManager& prog, TemperatureProbe& 
         //    sys.updateStatus(EXECUTING);
         //}
         sys.updateStatus(EXECUTING);
+        break;
 
     // HOLD: hold the current temperature for a known or unknown period of time
     case HOLD:    // TODO: implement the HOLD state 
@@ -463,36 +493,42 @@ bool programExecution(CoreSystem& sys, ProgramManager& prog, TemperatureProbe& s
             return false;
         }
         else if (prog.CurrentInstruction().waitForDoorOpen){
-            doorInterrupt(); // poll the door status
-            // TODO maybe this needs a better implementation?
+            // Wait for the door to open. The hardware ISR (doorInterrupt) will
+            // call nextInstruction() when the door closes after being opened.
+            return false;
         }
         else {
             // move to the next instruction
             if(prog.nextInstruction()){
+                prog.setInstrStartTemp(sys.CurrentTemperature()); // ramp base for new instruction
                 sys.setTarget(prog.CurrentInstruction().target, true);
                 return true;
-            }   
+            }
             else{
                 // if there are no more instructions, go to END
                 sys.updateStatus(END);
                 return true;
             }
-        }   
+        }
     }
     else {
-        
+
         // if the instruction has a ramp coefficient, compute the ramp target
         if(prog.CurrentInstruction().tempVariationRate != 0){
+            double rate    = prog.CurrentInstruction().tempVariationRate; // [unit/min]
+            double elapsed = (double)(millis() - prog.InstrStartTime());  // [ms]
+            double target  = prog.CurrentInstruction().target;
 
-            // if we are far from the target temperature, compute the ramp
-            if(abs(sys.CurrentTemperature() - prog.CurrentInstruction().target) > 2*MAX_TEMP_ERROR){
-            
-            double newtarget = sys.CurrentTemperature() + prog.CurrentInstruction().tempVariationRate * (millis() - prog.InstrStartTime())/60000;
-            sys.setTarget(newtarget, true);
+            // if we are far from the target, advance the ramp setpoint
+            if(abs(sys.CurrentTemperature() - target) > 2*MAX_TEMP_ERROR){
+                double newtarget = prog.InstrStartTemp() + rate * elapsed / 60000.0;
+                // clamp so ramp cannot overshoot the final target
+                newtarget = (rate >= 0) ? min(newtarget, target) : max(newtarget, target);
+                sys.setTarget(newtarget, true);
             }
             else {
-                // if we are near the target temperature, we can stop ramping
-                prog.rampCompleted();   
+                // close enough — stop ramping
+                prog.rampCompleted();
             }
         }
 
@@ -740,45 +776,16 @@ void timeStampConverter(unsigned long millisTime, char* buff, int terms) {
 //* 4. Interrupt functions =====================================================================
 
 void doorInterrupt(){
-
-  cli(); // disable interrupts
-  
-  // HIGH == door open
+  // AVR disables interrupts on ISR entry. Keep this ISR minimal:
+  // only the immediate safety action (heater off) and flag sets.
+  // All state-machine logic is handled in manageSystemState() (main loop).
   if(digitalRead(PIN_DOOR_INTERRUPT) == HIGH){
-    __core.denyFiring(); // prevent the heater from turning on
-    digitalWrite(PIN_HEATER, LOW);      // turn off the heater
-
-    // if the system is executing a program, pause the execution
-    if(__program.IsSelected()){
-      __core.updateStatus(DOOR_OPEN);        // manage door opening during execution
-    }
-  }  
-  else { // if the door is closed, resume the system
-    __core.allowFiring();  // allow the heater to turn on
-
-    // if the system was executing a program, resume the execution
-    if(__program.IsSelected()){
-
-      // Move back to EXECUTING
-     __core.updateStatus(EXECUTING);
-
-      // if the door action was expected, move to the next instruction
-      if(__program.CurrentInstruction().waitForDoorOpen){
-        __program.nextInstruction();
-        
-      }
-      else {
-        // if the door action was not expected, recover the system temperature
-        __core.updateStatus(RECOVER); // TODO: implement the recover state
-      }
-
-    }
-    else {
-      __core.updateStatus(IDLE);
-    }
+    digitalWrite(PIN_HEATER, LOW); // cut heater immediately — time-critical safety
+    doorOpenFlag = true;
   }
-
-  sei(); // enable interrupts
+  else {
+    doorCloseFlag = true;
+  }
 };
 
 void timerIsr(){

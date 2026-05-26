@@ -10,8 +10,8 @@
 #define MINUTE SECOND * 60
 
 // Time limits are expressed in milliseconds
-#define MAX_TIME_DOOR_OPEN 5 * MINUTE * SECOND
-#define MAX_HOLD_TIME 30 * MINUTE * SECOND
+#define MAX_TIME_DOOR_OPEN 5 * MINUTE 
+#define MAX_HOLD_TIME 30 * MINUTE 
 #define MAX_TIME_BETWEEN_TEMP_CHECKS 1 * SECOND
 
 // Temperature limits are defined in celsius and converted later
@@ -44,12 +44,16 @@
 #define ENCODER_STEPS 4
 
 
-// Memory addresses for EEPROM
-// nomen est omen
+// Memory addresses for EEPROM (byte offsets)
+// KP @ 0, KI @ 8, KD @ 16, UNIT @ 24, MAGIC @ 32
 #define EEPROM_ADDR_KP 0
-#define EEPROM_ADDR_KI EEPROM_ADDR_KP + sizeof(double)
-#define EEPROM_ADDR_KD EEPROM_ADDR_KP + 2*sizeof(double)
-#define EEPROM_DEFAULT_UNIT EEPROM_KP + 3*sizeof(double)
+#define EEPROM_ADDR_KI  (EEPROM_ADDR_KP + (int)sizeof(double))
+#define EEPROM_ADDR_KD  (EEPROM_ADDR_KP + 2*(int)sizeof(double))
+#define EEPROM_DEFAULT_UNIT (EEPROM_ADDR_KP + 3*(int)sizeof(double))
+// Magic byte written after a successful autotune; guards against loading
+// garbage PID values from a fresh/erased AVR EEPROM (default 0xFF).
+#define EEPROM_MAGIC_ADDR 32
+#define EEPROM_MAGIC_VAL  0xAB
 
 // Autotune parameters 
 #define TARGET_TEMP_FOR_AUTOTUNE 800  // Target setpoint

@@ -1,0 +1,5 @@
+CLAUDE.md
+.vscode/
+.pio/
+*.pyc
+.DS_Store

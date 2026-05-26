@@ -145,7 +145,6 @@ private:
   bool isAdjustingTarget = false;
   bool encoderRotated = false;
   int currentUnit = (int) __core.Unit();
-  bool confirmPIDautotune = false;
 
   void renderMenu(TFT_HX8357& tft, int menuIndex); // Render the menu options
   void handleSelection();                          // Perform action on selection
@@ -162,8 +161,7 @@ public:
     TargetUpdateScreen(){};
     void render(TFT_HX8357& tft) override;
     void update(ClickEncoder& encoder, TFT_HX8357& tft) override;
-    void handleSelection();
-    
+
 private:
     float targetTemperature;  // Initial target temperature
     bool updatingTarget = false;  // Flag to track if we're in the target setting mode

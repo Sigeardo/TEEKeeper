@@ -87,7 +87,7 @@ class TemperatureProbe {
         TemperatureProbe(TemperatureUnit u);
 
         // Setters and Getters
-        void setUnit(TemperatureUnit unit){unit = unit;};
+        void setUnit(TemperatureUnit u){unit = u;};
 
         TemperatureUnit   Unit()   const {return unit;};
         Adafruit_MAX31855 Sensor() const {return sensor;};
@@ -177,6 +177,7 @@ class ProgramManager {
         unsigned int    instructionIndex    = 0;
         unsigned long   progStartTime   = 0;    // [ms]
         unsigned long   instrStartTime  = 0;    // [ms]
+        double          instrStartTemp  = 0;    // [unit] temperature at instruction start (ramp base)
         
         // == 3. Instruction Variables ================================================================
         unsigned long   soakTimeStart   = 0;    // [ms]
@@ -204,6 +205,7 @@ class ProgramManager {
         unsigned int InstructionIndex() const { return instructionIndex; }
         unsigned long ProgStartTime() const { return progStartTime; }
         unsigned long InstrStartTime() const { return instrStartTime; }
+        double InstrStartTemp() const { return instrStartTemp; }
         unsigned long SoakTimeStart() const { return soakTimeStart; }
         unsigned long SoakTimeEnd() const { return soakTimeEnd; }
         bool IsSoaking() const { return isSoaking; }
@@ -220,6 +222,7 @@ class ProgramManager {
         void setNumOfInstructions(unsigned int num) { numOfInstructions = num; }
         void setInstructionIndex(unsigned int index) { instructionIndex = index; }
         void setInstrStartTime(unsigned long time) { instrStartTime = time; }
+        void setInstrStartTemp(double temp) { instrStartTemp = temp; }
         void setSoakTimeStart(unsigned long time) { soakTimeStart = time; }
         void setIsSoaking(bool soaking) { isSoaking = soaking; }
         void setTargetReached(bool stable) { targetReached = stable; }
@@ -239,7 +242,11 @@ class ProgramManager {
 
         // == 11. Execution Control =====================================================================
         unsigned long elapsedTime() { return millis() - progStartTime; }
-        unsigned long remainingSoakTime() { return soakTimeStart + CurrentInstruction().soakTime - millis(); }
+        unsigned long remainingSoakTime() {
+            unsigned long elapsed = millis() - soakTimeStart; // rollover-safe
+            unsigned long total   = CurrentInstruction().soakTime;
+            return (elapsed < total) ? (total - elapsed) : 0UL;
+        }
         void rampCompleted() { instructions[instructionIndex].tempVariationRate = 0; } // if the ramp has been completed, erase the ramp rate
         
         void startSoakTimer();              // Start the soak timer
